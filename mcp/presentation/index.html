@@ -282,9 +282,11 @@
               <div class="cs"><span class="cs-num">3</span> <code>StdioServerTransport</code> (local) ou transport HTTP (distant) puis <code>connect</code></div>
             </div>
             <div class="create-format">
-              <pre><code><span class="code-comment">// Paquets : @modelcontextprotocol/server, zod</span>
-<span class="code-keyword">import</span> { McpServer, StdioServerTransport }
-  <span class="code-keyword">from</span> <span class="code-string">'@modelcontextprotocol/server'</span>;
+              <pre><code><span class="code-comment">// Paquets : @modelcontextprotocol/sdk, zod</span>
+<span class="code-keyword">import</span> { McpServer }
+  <span class="code-keyword">from</span> <span class="code-string">'@modelcontextprotocol/sdk/server/mcp.js'</span>;
+<span class="code-keyword">import</span> { StdioServerTransport }
+  <span class="code-keyword">from</span> <span class="code-string">'@modelcontextprotocol/sdk/server/stdio.js'</span>;
 <span class="code-keyword">import</span> * <span class="code-keyword">as</span> z <span class="code-keyword">from</span> <span class="code-string">'zod/v4'</span>;</code></pre>
             </div>
           </div>

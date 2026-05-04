@@ -102,7 +102,7 @@
             <div class="hook-type-name">Parallélisme</div>
             <div class="hook-type-availability">Débit</div>
             <div class="hook-type-desc">Plusieurs délégations <strong>indépendantes</strong> en parallèle (ex. <code>openapi.yaml</code> + section <strong>Installation</strong> du <code>README.md</code>) au lieu d’attendre la fin de chaque étape.</div>
-            <div class="hook-type-tag">Task / messages</div>
+            <div class="hook-type-tag">Agent / messages</div>
           </div>
           <div class="hook-type-card animate-card" style="--delay: 0.4s">
             <div class="hook-type-icon">🧩</div>
@@ -263,11 +263,14 @@
             </div>
           </div>
           <div class="create-col animate-card" style="--delay: 0.55s">
-            <div class="create-col-header cursor-header">⚡ Task</div>
+            <div class="create-col-header cursor-header">⚡ Agent (ex. Task)</div>
             <div class="create-steps">
               <div class="cs"><span class="cs-num">1</span> L’agent parent lance un sous-agent typé avec un prompt dédié</div>
               <div class="cs"><span class="cs-num">2</span> Arrière-plan &amp; reprise selon besoin</div>
               <div class="cs"><span class="cs-num">3</span> Multi-agents entre sessions → voir <em>agent teams</em> (doc)</div>
+            </div>
+            <div class="create-note" style="margin:0 1.25rem 1rem;font-size:0.82rem">
+              ⚠️ Les sous-agents <strong>ne peuvent pas</strong> lancer d'autres sous-agents — pas d'imbrication infinie.
             </div>
           </div>
         </div>
@@ -307,7 +310,7 @@
           <div class="create-steps">
             <div class="cs"><span class="cs-num">1</span> Terminal : lancer <code>claude</code> dans le dépôt de démo.</div>
             <div class="cs"><span class="cs-num">2</span> Taper <code>/agents</code> : parcourir la bibliothèque ; montrer <code>.claude/agents/</code> (à versionner dans Git).</div>
-            <div class="cs"><span class="cs-num">3</span> Lancer un <strong>Explore</strong> ou une <strong>Task</strong> ciblée en lecture seule (ex. cartographier des appels sans modifier les fichiers).</div>
+            <div class="cs"><span class="cs-num">3</span> Lancer un <strong>Explore</strong> ou un <strong>Agent</strong> ciblé en lecture seule (ex. cartographier des appels sans modifier les fichiers).</div>
             <div class="cs"><span class="cs-num">4</span> Optionnel : une phrase sur la <strong>reprise</strong> d’agent en arrière-plan si vous l’utilisez.</div>
           </div>
         </div>
@@ -334,8 +337,8 @@
             <tbody>
               <tr>
                 <td class="row-label">Délégation</td>
-                <td>Task + agents <code>.cursor/agents/</code></td>
-                <td>Task + <code>/agents</code> + <code>.claude/agents/</code></td>
+                <td>Agent + agents <code>.cursor/agents/</code></td>
+                <td>Agent + <code>/agents</code> + <code>.claude/agents/</code></td>
               </tr>
               <tr>
                 <td class="row-label">Interop agents</td>
@@ -503,7 +506,7 @@
           <h2>🎯 Récapitulatif</h2>
           <div class="conclusion-items">
             <div class="conclusion-item">Déléguer sert surtout à <strong>protéger</strong> le contexte principal, <strong>paralléliser</strong> le travail indépendant et <strong>spécialiser</strong> les comportements.</div>
-            <div class="conclusion-item"><strong>Cursor</strong> et <strong>Claude Code</strong> partagent l’idée ; les chemins (<code>.cursor/agents/</code>, <code>.claude/agents/</code>, <code>/agents</code>, Task) se recoupent en partie.</div>
+            <div class="conclusion-item"><strong>Cursor</strong> et <strong>Claude Code</strong> partagent l’idée ; les chemins (<code>.cursor/agents/</code>, <code>.claude/agents/</code>, <code>/agents</code>, Agent) se recoupent en partie.</div>
             <div class="conclusion-item">Avec Rules, Skills, Hooks et Spec-driven : les sous-agents sont la couche <strong>d’exécution</strong> qui évite l’asphyxie du fil unique.</div>
           </div>
           <div class="cta-box">
