@@ -46,25 +46,9 @@ Chaque dossier de capsule contient :
 
 ## Utilisation locale
 
-### Option 1 : Serveur local (recommandé)
+Ouvrez `index.html` directement dans un navigateur. Aucune dépendance, aucun serveur requis.
 
-Un script Python est inclus pour lancer un serveur local avec navigation entre les capsules :
-
-```bash
-python serve.py
-```
-
-Cela ouvre `http://localhost:8080` dans le navigateur avec la page d'accueil listant toutes les capsules.
-
-Port personnalisé :
-
-```bash
-python serve.py 9000
-```
-
-### Option 2 : Ouvrir directement
-
-Ouvrez n'importe quel fichier `*/presentation/index.html` directement dans un navigateur. Aucune dépendance requise.
+Toutes les capsules sont accessibles via des liens relatifs depuis la page d'accueil.
 
 ## Auteur
 
