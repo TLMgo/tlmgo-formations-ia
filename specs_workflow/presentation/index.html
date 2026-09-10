@@ -1,0 +1,864 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Les SPECS — Planification, Coding, Tests, Reviews</title>
+<style>
+:root{
+  --bg:#0e1116; --bg2:#151a22; --fg:#e7edf5; --dim:#8b98aa;
+  --accent:#5eead4; --accent2:#a78bfa; --warn:#fbbf24; --bad:#f87171; --good:#4ade80;
+  --line:#232b36; --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.5;-webkit-font-smoothing:antialiased}
+
+#deck{height:100vh;overflow-y:scroll;scroll-snap-type:y mandatory;scroll-behavior:smooth}
+section{
+  min-height:100vh;scroll-snap-align:start;scroll-snap-stop:always;
+  display:flex;flex-direction:column;justify-content:center;
+  padding:clamp(1.6rem,4.5vw,4.5rem) clamp(1.4rem,6.5vw,7.5rem);
+  border-bottom:1px solid var(--line);position:relative;
+  overflow-y:auto;
+}
+section > *{max-width:1180px;width:100%}
+
+h1{font-size:clamp(2rem,5.2vw,4.2rem);line-height:1.08;letter-spacing:-.03em;font-weight:800}
+h2{font-size:clamp(1.5rem,3.2vw,2.6rem);line-height:1.12;letter-spacing:-.02em;font-weight:750;margin-bottom:1.3rem}
+p{font-size:clamp(.95rem,1.45vw,1.24rem);color:var(--dim);max-width:64ch}
+p.lead{color:var(--fg);font-size:clamp(1.05rem,1.8vw,1.5rem)}
+strong{color:var(--fg);font-weight:650}
+em{color:var(--accent);font-style:normal;font-weight:600}
+code{font-family:var(--mono);font-size:.92em}
+p code,li code,td code{color:var(--accent);background:#0a0d12;padding:.1em .4em;border-radius:4px}
+
+.kicker{font-family:var(--mono);font-size:.76rem;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:1rem}
+.kicker.v2{color:var(--accent2)}
+.kicker.w{color:var(--warn)}
+
+ul{list-style:none;margin-top:1.2rem}
+li{font-size:clamp(.94rem,1.45vw,1.18rem);padding:.45rem 0 .45rem 1.75rem;position:relative;color:var(--dim);max-width:66ch}
+li::before{content:"—";position:absolute;left:0;color:var(--accent);font-weight:700}
+li strong{color:var(--fg)}
+
+.title{background:radial-gradient(ellipse at 20% 10%,#1b2430 0%,var(--bg) 60%)}
+.title h1 span{color:var(--accent)}
+.meta{margin-top:2rem;font-family:var(--mono);font-size:.82rem;color:var(--dim);letter-spacing:.05em}
+
+.divider{background:var(--bg2)}
+.divider .num{font-family:var(--mono);font-size:clamp(2.6rem,8vw,6rem);font-weight:800;color:var(--line);line-height:1}
+.divider h2{margin:.3rem 0 .5rem}
+.divider .q{font-size:clamp(1.05rem,1.9vw,1.5rem);color:var(--fg);font-weight:600;margin-top:.8rem}
+.divider .time{font-family:var(--mono);font-size:.8rem;color:var(--accent);letter-spacing:.1em;margin-top:1.2rem}
+
+.grid{display:grid;gap:.85rem;margin-top:1.5rem}
+.g2{grid-template-columns:repeat(auto-fit,minmax(285px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(175px,1fr))}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:1rem 1.15rem}
+.card p{font-size:.93rem;max-width:none}
+.card .tag{font-family:var(--mono);font-size:.69rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:.4rem}
+.card.bad{border-color:#4a2226}.card.bad .tag{color:var(--bad)}
+.card.good{border-color:#1e3f2c}.card.good .tag{color:var(--good)}
+.card.warn{border-color:#4a3a12}.card.warn .tag{color:var(--warn)}
+.card.v2{border-color:#3a2f5c}.card.v2 .tag{color:var(--accent2)}
+
+pre{background:#0a0d12;border:1px solid var(--line);border-radius:10px;padding:.95rem 1.15rem;overflow-x:auto;margin-top:1.1rem}
+pre code{font-size:clamp(.7rem,.98vw,.89rem);line-height:1.58;color:#cbd5e1;white-space:pre;background:none;padding:0}
+.c-key{color:var(--accent2);font-weight:600}
+.c-str{color:var(--accent)}
+.c-cmt{color:#5b6675}
+.c-add{color:var(--good)}
+.c-del{color:var(--bad)}
+.c-w{color:var(--warn)}
+
+.quote{border-left:3px solid var(--accent);padding-left:1.25rem;margin-top:1.4rem}
+.quote p{color:var(--fg);font-size:clamp(.98rem,1.7vw,1.38rem);font-style:italic;max-width:56ch}
+.quote cite{display:block;margin-top:.55rem;font-style:normal;font-family:var(--mono);font-size:.76rem;color:var(--dim)}
+.quote.v2{border-color:var(--accent2)}
+.quote.w{border-color:var(--warn)}
+
+.big{font-size:clamp(1.45rem,3.6vw,2.8rem);font-weight:750;letter-spacing:-.02em;line-height:1.2;max-width:25ch}
+.big .x{color:var(--bad);text-decoration:line-through;text-decoration-thickness:2px}
+.big .o{color:var(--accent)}
+
+table{border-collapse:collapse;width:100%;margin-top:1.3rem;font-size:clamp(.8rem,1.2vw,1rem)}
+th,td{text-align:left;padding:.65rem .9rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--mono);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:600}
+td{color:var(--dim)}
+td:first-child{color:var(--fg)}
+
+.flow{display:flex;flex-wrap:wrap;gap:.45rem;align-items:center;margin-top:1.5rem;font-family:var(--mono);font-size:clamp(.72rem,1.15vw,.92rem)}
+.flow span{background:var(--bg2);border:1px solid var(--accent);color:var(--accent);border-radius:8px;padding:.5rem .85rem}
+.flow i{color:var(--dim);font-style:normal}
+
+.checklist li{padding-left:2.2rem}
+.checklist li::before{content:"\2610";font-size:1.15em;color:var(--accent)}
+
+.diag{display:block;width:100%;max-width:960px;margin:1.3rem auto 0;height:auto}
+.d-box{fill:var(--bg2);stroke:var(--line);stroke-width:1.5}
+.d-acc{stroke:var(--accent);fill:none;stroke-width:2}
+.d-bad{stroke:var(--bad);fill:none;stroke-width:2}
+.d-good{stroke:var(--good);fill:none;stroke-width:2}
+.d-txt{fill:var(--fg);font-family:var(--sans);font-size:15px;font-weight:600}
+.d-dim{fill:var(--dim);font-family:var(--sans);font-size:13px}
+.d-mono{fill:var(--accent);font-family:var(--mono);font-size:12px}
+.d-acc-f{fill:var(--accent)} .d-bad-f{fill:var(--bad)} .d-good-f{fill:var(--good)} .d-dim-f{fill:var(--dim)}
+.who{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1.1rem}
+.who span{font-size:clamp(.85rem,1.3vw,1.02rem);padding:.45rem .85rem;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--dim);max-width:44ch}
+.who span b{color:var(--accent);font-weight:700;margin-right:.35rem}
+.who span.ag b{color:var(--accent2)}
+tr.miss td{background:#2a1518;color:var(--bad)}
+
+.art{position:absolute;right:clamp(1.5rem,7vw,8rem);top:50%;transform:translateY(-50%);width:clamp(130px,21vw,300px);height:auto}
+.art *{fill:none;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
+.art .a1{stroke:var(--accent)} .art .a2{stroke:var(--accent2)} .art .ad{stroke:var(--dim)} .art .ag{stroke:var(--good)} .art .ab{stroke:var(--bad)}
+.art .f1{fill:var(--accent);stroke:none} .art .f2{fill:var(--accent2);stroke:none}
+@media (max-width:820px){.art{display:none}}
+.ok{color:var(--good);font-weight:700}
+.ko{color:var(--bad);font-weight:700}
+
+.spot{width:clamp(54px,7vw,74px);height:auto;margin-top:1.3rem;display:block}
+.spot *{fill:none;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
+.spot .s1{stroke:var(--accent)} .spot .s2{stroke:var(--accent2)} .spot .sd{stroke:var(--dim)} .spot .sg{stroke:var(--good)} .spot .sb{stroke:var(--bad)} .spot .sw{stroke:var(--warn)}
+.spot .fg{fill:var(--good);stroke:none} .spot .fb{fill:var(--bad);stroke:none} .spot .fw{fill:var(--warn);stroke:none}
+
+.pr{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:1.3rem;background:var(--bg2);font-size:clamp(.82rem,1.15vw,1rem)}
+.pr-head{padding:.9rem 1.1rem;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:.7rem;flex-wrap:wrap}
+.pr-open{background:#238636;color:#fff;font-weight:600;font-size:.8rem;padding:.25rem .7rem;border-radius:20px}
+.pr-title{color:var(--fg);font-weight:650}
+.pr-title span{color:var(--dim);font-weight:400}
+.pr-body{padding:1rem 1.1rem;display:grid;grid-template-columns:1fr 1fr;gap:1.1rem}
+.pr-body h4{font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:.5rem}
+.pr-body p{font-size:.9rem;margin:0}
+.pr-li{color:var(--dim);font-size:.9rem;padding:.18rem 0 .18rem 1.5rem;position:relative}
+.pr-li::before{content:"\2611";position:absolute;left:0;color:var(--good)}
+.pr-file{font-family:var(--mono);font-size:.82rem;color:var(--dim);padding:.16rem 0}
+.pr-check{display:flex;align-items:center;gap:.5rem;font-size:.86rem;color:var(--dim);padding:.2rem 0}
+.pr-check b{color:var(--good)}
+.pr-foot{padding:.8rem 1.1rem;border-top:1px solid var(--line);font-size:.86rem;color:var(--dim);background:#101722}
+.pr-foot b{color:var(--good)}
+@media (max-width:720px){.pr-body{grid-template-columns:1fr}}
+
+.split{display:grid;grid-template-columns:minmax(0,0.92fr) minmax(0,1.08fr);gap:clamp(1.4rem,3.5vw,3rem);align-items:center;width:100%;max-width:1180px}
+.split .l{min-width:0}
+.split .r{min-width:0}
+.split .r > *{margin:0}
+.split .r > * + *{margin-top:1rem}
+.split .r .diag{max-width:100%}
+.split .l .quote{margin-top:1.3rem}
+.split .l .grid{margin-top:1.2rem}
+@media (max-width:900px){.split{grid-template-columns:1fr;gap:1.2rem}}
+
+.badge{position:absolute;top:clamp(1.1rem,3vh,2.1rem);right:clamp(1.4rem,6vw,7.5rem);width:clamp(30px,3.4vw,44px);height:auto;opacity:.9;z-index:3}
+.badge *{fill:none;stroke:var(--accent);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.badge .f{fill:var(--accent);stroke:none}
+.divider .badge,.title .badge{stroke-opacity:1}
+@media (max-width:820px){.badge{display:none}}
+
+#bar{position:fixed;top:0;left:0;height:2px;background:var(--accent);width:0;z-index:10;transition:width .15s}
+#nav{position:fixed;bottom:1rem;right:1.2rem;font-family:var(--mono);font-size:.75rem;color:var(--dim);z-index:10;
+  background:rgba(14,17,22,.85);border:1px solid var(--line);border-radius:20px;padding:.3rem .8rem;backdrop-filter:blur(6px)}
+#nav b{color:var(--fg);font-weight:600}
+#hint{position:fixed;bottom:1rem;left:1.2rem;font-family:var(--mono);font-size:.7rem;color:#4b5563;z-index:10}
+@media print{#deck{height:auto;overflow:visible}section{min-height:0;page-break-after:always}#nav,#hint,#bar{display:none}}
+@media (max-width:640px){li{padding-left:1.35rem}}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<div id="nav"><b id="cur">1</b> / <span id="tot">0</span></div>
+<div id="hint">← → · espace</div>
+
+<div id="deck">
+
+<!-- 1 · TITRE -->
+<section class="title">
+  <div class="kicker">Présentation · 30 minutes</div>
+  <h1>Comment des <span>SPECS</span> peuvent m'aider<br>et aider mon agent</h1>
+  <p class="lead" style="margin-top:1.3rem">Dans la <strong>Planification</strong>, dans le <strong>Coding</strong>, dans les <strong>Tests</strong> et dans les <strong>Reviews</strong>.</p>
+  <div class="meta">quatre étapes · à chaque étape, une seule question : en quoi la spec aide ici&nbsp;?</div>
+</section>
+
+<!-- 2 · SANS SPEC -->
+<section>
+ <div class="split">
+  <div class="l">
+    <div class="kicker">Le point de départ</div>
+    <h2>Ce qui se passe sans spec</h2>
+    <div class="quote"><p>Le vrai risque n'est pas que l'agent soit lent. C'est qu'il produise du code qui a l'air juste et résout tranquillement le mauvais problème.</p></div>
+  </div>
+  <div class="r">
+    <div class="grid g2">
+      <div class="card bad"><span class="tag">Planification</span><p>Le besoin reste dans le chat. On se met d'accord à l'oral, et chacun repart avec une version un peu différente.</p></div>
+      <div class="card bad"><span class="tag">Coding</span><p>L'agent code vite. Donc il code vite dans une direction que personne n'a vraiment choisie.</p></div>
+      <div class="card bad"><span class="tag">Tests</span><p>Les tests sont écrits après, en regardant le code. Ils confirment ce que le code fait déjà.</p></div>
+      <div class="card bad"><span class="tag">Reviews</span><p>Beaucoup de code qui a l'air correct. On approuve « parce que ça semble raisonnable ».</p></div>
+    </div>
+  </div>
+ </div>
+</section>
+
+<!-- 3 · LA SPEC = TEXTE -->
+<section>
+ <div class="split">
+  <div class="l">
+    <div class="kicker">L'exemple qui servira partout</div>
+    <h2>Un « simple » login<br>cache treize cas</h2>
+    <p>« Faire un écran de connexion », ça paraît trivial. En creusant les exigences, les questions difficiles sortent — treize cas, et ce n'est même pas fini.</p>
+    <p style="margin-top:1rem"><strong>Plusieurs décrivent un refus, une limite ou une contrainte de sécurité</strong>, pas un succès. C'est là que se cachent les vrais bugs.</p>
+  </div>
+  <div class="r">
+<pre><code><span class="c-cmt">## Connexion</span>
+Un email inconnu et un mauvais mot de passe <span class="c-key">DOIVENT</span> renvoyer le même
+refus, <span class="c-w">pour qu'on ne puisse pas deviner quels comptes existent</span>.
+
+  <span class="c-str">Cas 1</span>  Identifiants valides            → connexion acceptée
+  <span class="c-str">Cas 2</span>  Email inconnu <span class="c-w">ou</span> mot de passe faux  → <span class="c-w">même</span> message d'erreur
+  <span class="c-str">Cas 3</span>  Compte désactivé                → refusé
+  <span class="c-str">Cas 4</span>  Champ vide                      → erreur de saisie
+  <span class="c-str">Cas 5</span>  Email en MAJUSCULES             → accepté (casse ignorée)
+  <span class="c-str">Cas 6</span>  Utilisateur déjà connecté       → <span class="c-w">redirigé, pas d'écran</span>
+
+<span class="c-cmt">## Blocage après trop d'essais</span>
+  <span class="c-str">Cas 7</span>  5 échecs <span class="c-w">en 15 min</span> sur le même compte → bloqué 30 min + message
+  <span class="c-str">Cas 8</span>  Les 5 échecs viennent d'IP différentes → <span class="c-w">bloqué quand même</span>
+          (on compte <span class="c-w">par compte</span>)
+  <span class="c-str">Cas 9</span>  Une même IP essaie 20 comptes différents <span class="c-w">en 15 min</span>
+          → <span class="c-w">cette IP est bloquée</span> (on compte <span class="c-w">aussi par IP</span>)
+  <span class="c-str">Cas 10</span> Une connexion réussie <span class="c-w">remet le compteur à zéro</span>
+  <span class="c-str">Cas 11</span> Pendant le blocage, bon mot de passe → <span class="c-w">refusé</span>
+  <span class="c-str">Cas 12</span> Après 30 min                → connexion de nouveau possible
+
+<span class="c-cmt">## Journalisation</span>
+  <span class="c-str">Cas 13</span> Chaque tentative journalisée
+
+<span class="c-cmt">  … et ce n'est pas fini (mot de passe expiré, e-mail non vérifié,
+  double authentification…)</span></code></pre>
+  </div>
+ </div>
+</section>
+
+<!-- 4 · MÊME FICHIER, 4 FOIS -->
+<section>
+ <div class="split">
+  <div class="l">
+    <div class="kicker v2">Le fil conducteur</div>
+    <h2>Les mêmes specs servent quatre fois</h2>
+    <p>Un changement s'écrit dans des documents simples — le pourquoi, la conception, les tâches, les cas. <strong>Les mêmes documents</strong> sont relus à quatre étapes, et à chaque fois ils rendent un service différent.</p>
+  </div>
+  <div class="r">
+<svg class="diag" viewBox="0 0 960 430" role="img" aria-label="La spec au centre, quatre usages autour">
+  <defs><marker id="m4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="d-acc-f"/></marker></defs>
+  <rect x="312" y="176" width="336" height="84" rx="12" class="d-box" style="stroke:var(--accent);stroke-width:2"/>
+  <text x="480" y="212" text-anchor="middle" class="d-txt" style="font-size:22px">la spec</text>
+  <text x="480" y="238" text-anchor="middle" class="d-mono">des documents texte, rangés avec le code</text>
+
+  <rect x="30" y="34" width="280" height="96" rx="12" class="d-box"/>
+  <text x="52" y="68" class="d-txt">Planification</text>
+  <text x="52" y="94" class="d-dim">fait apparaître les questions tôt</text>
+  <text x="52" y="114" class="d-dim">et donne la liste des tâches</text>
+
+  <rect x="650" y="34" width="280" height="96" rx="12" class="d-box"/>
+  <text x="672" y="68" class="d-txt">Coding</text>
+  <text x="672" y="94" class="d-dim">donne à l'agent un cadre écrit</text>
+  <text x="672" y="114" class="d-dim">qu'il relit à chaque session</text>
+
+  <rect x="30" y="306" width="280" height="96" rx="12" class="d-box"/>
+  <text x="52" y="340" class="d-txt">Tests</text>
+  <text x="52" y="366" class="d-dim">dit quoi tester</text>
+  <text x="52" y="386" class="d-dim">et rend le test indépendant du code</text>
+
+  <rect x="650" y="306" width="280" height="96" rx="12" class="d-box"/>
+  <text x="672" y="340" class="d-txt">Reviews</text>
+  <text x="672" y="366" class="d-dim">donne un point de comparaison</text>
+  <text x="672" y="386" class="d-dim">au lieu d'une impression</text>
+
+  <line x1="356" y1="180" x2="312" y2="128" class="d-acc" marker-end="url(#m4)"/>
+  <line x1="604" y1="180" x2="648" y2="128" class="d-acc" marker-end="url(#m4)"/>
+  <line x1="356" y1="256" x2="312" y2="308" class="d-acc" marker-end="url(#m4)"/>
+  <line x1="604" y1="256" x2="648" y2="308" class="d-acc" marker-end="url(#m4)"/>
+</svg>
+  </div>
+ </div>
+</section>
+
+<!-- 5 · DIV PLANIFICATION -->
+<section class="divider">
+  <div class="num">01</div>
+  <h2>Planification</h2>
+  <p class="q">En quoi la spec aide&nbsp;?</p>
+  <p class="lead" style="margin-top:.5rem;color:var(--dim)">Se mettre d'accord avant d'écrire le code.</p>
+  <div class="who"><span><b>Pour moi</b> je traite les questions avant de coder, quand corriger ne coûte qu'une ligne</span><span class="ag"><b>Pour l'agent</b> il reçoit des cas clairs et une liste de fichiers, pas une conversation à deviner</span></div>
+<svg class="art" viewBox="0 0 200 200" aria-hidden="true"><rect class="a1" x="36" y="52" width="112" height="132" rx="10"/><path class="a1" d="M56 88h20M56 118h20M56 148h20"/><path class="ag" d="M92 88l8 8 14-16M92 118l8 8 14-16"/><path class="ab" d="M96 142l14 14M110 142l-14 14"/><path class="a2" d="M118 16h52a12 12 0 0 1 12 12v22a12 12 0 0 1-12 12h-30l-14 12v-12h-8a12 12 0 0 1-12-12V28a12 12 0 0 1 12-12z"/><path class="a2" d="M136 32a8 8 0 1 1 12 8c-4 2-5 4-5 8"/><circle class="f2" cx="143" cy="56" r="2"/></svg>
+</section>
+
+<!-- 6 · QUESTIONS TÔT -->
+<section>
+ <div class="split">
+  <div class="l">
+    <div class="kicker">Planification</div>
+    <h2>Les questions sortent maintenant,<br>pas en production</h2>
+    <p>Écrire les cas oblige à se poser des questions qu'on n'aurait pas posées spontanément. Répondre coûte une ligne aujourd'hui, un incident plus tard.</p>
+  <table style="margin-top:1.1rem">
+    <tr><th>La question sort en écrivant</th><th>Ce qu'elle coûte si elle ne sort pas</th></tr>
+    <tr><td>« Et si l'email n'existe pas&nbsp;? »</td><td>On peut deviner quels comptes existent</td></tr>
+    <tr><td>« On compte les échecs par IP ou par compte&nbsp;? »</td><td><strong>Par IP seule</strong> : contournée par une attaque venant de mille IP. <strong>Par compte seul</strong> : un attaquant verrouille les comptes des autres. → il faut <strong>les deux</strong>.</td></tr>
+    <tr><td>« Et les majuscules dans l'email&nbsp;? »</td><td>Un ticket support par semaine, pendant deux ans</td></tr>
+    <tr><td>« Garde-t-on une trace des tentatives&nbsp;? »</td><td>Impossible d'enquêter après un incident</td></tr>
+  </table>
+    <div class="quote"><p>Les questions qu'on ne se pose pas en écrivant la spec, on se les pose en production.</p></div>
+  </div>
+  <div class="r">
+<svg class="diag" style="margin:0" viewBox="0 0 480 380" role="img" aria-label="Coût d'une réponse selon le moment">
+  <defs><marker id="m6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="d-dim-f"/></marker></defs>
+  <line x1="50" y1="330" x2="466" y2="330" style="stroke:var(--line);stroke-width:1.5" marker-end="url(#m6)"/>
+  <line x1="50" y1="330" x2="50" y2="24" style="stroke:var(--line);stroke-width:1.5" marker-end="url(#m6)"/>
+  <text x="60" y="26" class="d-dim">coût de la réponse</text>
+  <path d="M 70 320 C 220 318, 320 296, 380 216 S 440 62 450 44" class="d-bad" style="stroke-width:2.5"/>
+  <text x="70" y="356" text-anchor="middle" class="d-dim">Spec</text>
+  <text x="165" y="356" text-anchor="middle" class="d-dim">Code</text>
+  <text x="260" y="356" text-anchor="middle" class="d-dim">Tests</text>
+  <text x="355" y="356" text-anchor="middle" class="d-dim">Revue</text>
+  <text x="445" y="356" text-anchor="middle" class="d-dim">Prod</text>
+  <circle cx="70" cy="320" r="7" class="d-good-f"/>
+  <text x="86" y="272" class="d-txt" style="fill:var(--good)">10 secondes,</text>
+  <text x="86" y="290" class="d-txt" style="fill:var(--good)">une ligne de plus</text>
+  <circle cx="450" cy="44" r="7" class="d-bad-f"/>
+  <text x="432" y="66" text-anchor="end" class="d-txt" style="fill:var(--bad)">un incident,</text>
+  <text x="432" y="84" text-anchor="end" class="d-txt" style="fill:var(--bad)">un correctif, une réunion</text>
+</svg>
+  </div>
+ </div>
+</section>
+
+<!-- 7 · DÉCISIONS -->
+<section>
+ <div class="split">
+  <div class="l">
+    <div class="kicker">Planification</div>
+    <h2>Chaque question tranchée<br>devient une décision écrite</h2>
+    <p>Les questions d'avant appellent des réponses. La spec garde ces <strong>décisions et leur logique</strong> — pas seulement le choix, mais le <em>pourquoi</em>. Six mois plus tard, on ne re-débat pas : c'est écrit.</p>
+    <div class="quote"><p>Rien ne part au code tant que <strong>chaque question n'a pas sa décision écrite</strong>. Sinon, c'est l'agent qui tranchera à ta place — au hasard.</p></div>
+  </div>
+  <div class="r">
+<pre style="margin-top:0"><code><span class="c-cmt">## Question tranchée → décision</span>
+« On compte les échecs par IP ou par compte ? »
+
+<span class="c-cmt">## Décision</span>
+- On compte <span class="c-w">par compte ET par IP</span>.
+  <span class="c-str">Pourquoi</span> : par IP seule, une attaque distribuée passe ;
+  par compte seul, on peut bloquer les comptes des autres.
+- Blocage 30 min, <span class="c-w">pas définitif</span>.
+  <span class="c-str">Pourquoi</span> : ne pas appeler le support à chaque oubli.</code></pre>
+  </div>
+ </div>
+</section>
+
+<!-- 8 · LE CLIENT PEUT LIRE -->
+<section>
+ <div class="split">
+  <div class="l">
+    <div class="kicker">Planification</div>
+    <h2>Le client <em>peut</em> la lire<br>et décider lui-même</h2>
+    <p>Une spec, c'est du texte : ce que le système doit faire, écrit en clair. Pas de code, pas de terme technique. Le client <strong>peut</strong> la lire et trancher. <span style="color:var(--warn)">C'est une possibilité, pas une obligation</span> : beaucoup d'équipes ne le font pas, et la spec reste tout aussi utile en interne.</p>
+    <div class="grid g3">
+      <div class="card good"><span class="tag">S'il veut décider</span><p>« Après combien d'essais on bloque le compte ? » — une question en français, une réponse en français, écrite dans la spec.</p></div>
+      <div class="card good"><span class="tag">S'il veut valider</span><p>Il approuve une liste de cas, pas des lignes de code. Ce qu'il lit est exactement ce qui sera testé.</p></div>
+      <div class="card good"><span class="tag">S'il ne veut pas</span><p>Rien ne change pour l'équipe. La spec sert d'abord au dev et à l'agent ; le client est un bonus.</p></div>
+    </div>
+  </div>
+  <div class="r">
+<pre style="margin-top:0"><code><span class="c-cmt"># Ce que le client ne lira jamais</span>
+<span class="c-key">if</span> <span class="c-key">not</span> user <span class="c-key">or not</span> verify(pw, user.hash):
+    <span class="c-key">raise</span> HTTPException(401, <span class="c-str">"invalid_credentials"</span>)
+<span class="c-key">if</span> <span class="c-key">not</span> user.active:
+    <span class="c-key">raise</span> HTTPException(401, <span class="c-str">"invalid_credentials"</span>)</code></pre>
+<pre><code><span class="c-cmt">## Ce que le client peut lire — et valider</span>
+
+<span class="c-key">QUAND</span> quelqu'un se trompe d'email ou de mot de passe
+<span class="c-key">ALORS</span> le message d'erreur est <span class="c-str">exactement le même</span>
+   — pour qu'on ne puisse pas deviner les comptes qui existent.
+
+<span class="c-key">QUAND</span> un compte a été désactivé
+<span class="c-key">ALORS</span> il ne peut plus se connecter.</code></pre>
+  </div>
+ </div>
+</section>
+
+<!-- 8 · LA DÉCOUPE -->
+<section>
+ <div class="split">
+  <div class="l">
+    <div class="kicker">Planification</div>
+    <h2>Elle rend la découpe<br>vérifiable</h2>
+    <p>La liste des tâches, c'est le planning lui-même — la spec ne la fait pas à ta place. Ce qu'elle apporte : chaque tâche pointe vers un cas, donc on <strong>vérifie</strong> que rien ne manque et que rien n'est en trop.</p>
+    <div class="grid g3">
+      <div class="card good"><span class="tag">Se repère seul</span><p>Une tâche qui ne sert <strong>aucun cas</strong> = du travail que personne n'a demandé.</p></div>
+      <div class="card good"><span class="tag">Se repère seul</span><p>Un cas servi par <strong>aucune tâche</strong> = un oubli, visible avant même de coder.</p></div>
+      <div class="card good"><span class="tag">Effet important</span><p>Le test est une tâche, <strong>au même niveau que le code</strong>. Fini le « on testera si on a le temps ».</p></div>
+    </div>
+  </div>
+  <div class="r">
+<pre style="margin-top:0"><code><span class="c-cmt">## Tâches</span>
+
+- [x] A.1 Écran de connexion                → <span class="c-str">Cas 1, 2</span>
+- [ ] A.2 Refuser un compte désactivé       → <span class="c-str">Cas 3</span>
+- [ ] A.3 Rediriger un utilisateur connecté → <span class="c-str">Cas 6</span>
+- [ ] B.1 Bloquer 5 échecs + reset au succès → <span class="c-str">Cas 7, 10, 12</span>
+- [ ] B.2 Compter par compte ET par IP      → <span class="c-str">Cas 8, 9</span>
+- [ ] J.1 Journaliser chaque tentative      → <span class="c-str">Cas 13</span></code></pre>
+  </div>
+ </div>
+</section>
+
+<!-- 10 · DIV CODING -->
+<section class="divider">
+  <div class="num">02</div>
+  <h2>Coding</h2>
+  <p class="q">En quoi la spec aide&nbsp;?</p>
+  <p class="lead" style="margin-top:.5rem;color:var(--dim)">Donner à l'agent un cadre écrit, pas une conversation.</p>
+  <div class="who"><span><b>Pour moi</b> je ne ré-explique plus à chaque fois, et je peux lancer plusieurs tâches en même temps</span><span class="ag"><b>Pour l'agent</b> il relit le même texte à chaque session, et sait où s'arrêter</span></div>
+<svg class="art" viewBox="0 0 200 200" aria-hidden="true"><rect class="a2" x="22" y="30" width="156" height="140" rx="12" stroke-dasharray="8 7"/><rect class="a1" x="45" y="55" width="110" height="90" rx="8"/><path class="a1" d="M45 72h110"/><circle class="f1" cx="57" cy="63.5" r="2.5"/><circle class="f1" cx="66" cy="63.5" r="2.5"/><circle class="f1" cx="75" cy="63.5" r="2.5"/><path class="a1" d="M62 95l14 12-14 12M84 119h28"/></svg>
+</section>
+
+<!-- 11 · CONTEXTE RELU -->
+<section>
+ <div class="split">
+  <div class="l">
+    <div class="kicker">Coding</div>
+    <h2>L'agent <em>relit</em> le contexte,<br>au lieu de s'en souvenir</h2>
+    <div class="grid g2">
+      <div class="card bad">
+        <span class="tag">Contexte dans le chat</span>
+        <p>Session fermée = contexte perdu. Discussion trop longue = contexte coupé. Nouvelle session = on ré-explique.</p>
+      </div>
+      <div class="card good">
+        <span class="tag">Contexte dans les fichiers</span>
+        <p>L'agent lit la spec au démarrage. Même point de départ à chaque session, quelle que soit la machine ou le modèle.</p>
+      </div>
+    </div>
+    <div class="quote"><p>Le gain est discret, et c'est le plus rentable : reprendre après une coupure ne demande plus aucune ré-explication.</p></div>
+  </div>
+  <div class="r">
+<svg class="diag" viewBox="0 0 960 320" role="img" aria-label="Contexte du chat qui s'efface, contexte des fichiers qui reste">
+  <defs><marker id="m11" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="d-good-f"/></marker></defs>
+  <text x="20" y="26" class="d-txt" style="fill:var(--bad)">Contexte dans le chat</text>
+  <rect x="20" y="42" width="260" height="72" rx="10" class="d-box"/>
+  <text x="150" y="68" text-anchor="middle" class="d-dim">session 1</text>
+  <rect x="36" y="82" width="228" height="16" rx="4" style="fill:var(--bad);opacity:.9"/>
+  <rect x="350" y="42" width="260" height="72" rx="10" class="d-box"/>
+  <text x="480" y="68" text-anchor="middle" class="d-dim">session 2</text>
+  <rect x="366" y="82" width="140" height="16" rx="4" style="fill:var(--bad);opacity:.55"/>
+  <rect x="680" y="42" width="260" height="72" rx="10" class="d-box"/>
+  <text x="810" y="68" text-anchor="middle" class="d-dim">session 3</text>
+  <rect x="696" y="82" width="60" height="16" rx="4" style="fill:var(--bad);opacity:.3"/>
+  <text x="315" y="82" text-anchor="middle" class="d-dim" style="font-size:11px">coupé</text>
+  <text x="645" y="82" text-anchor="middle" class="d-dim" style="font-size:11px">on ré-explique</text>
+
+  <text x="20" y="168" class="d-txt" style="fill:var(--good)">Contexte dans les fichiers</text>
+  <rect x="20" y="184" width="260" height="50" rx="10" class="d-box"/>
+  <text x="150" y="214" text-anchor="middle" class="d-dim">session 1</text>
+  <rect x="350" y="184" width="260" height="50" rx="10" class="d-box"/>
+  <text x="480" y="214" text-anchor="middle" class="d-dim">session 2</text>
+  <rect x="680" y="184" width="260" height="50" rx="10" class="d-box"/>
+  <text x="810" y="214" text-anchor="middle" class="d-dim">session 3</text>
+  <line x1="150" y1="234" x2="150" y2="268" class="d-good" marker-end="url(#m11)"/>
+  <line x1="480" y1="234" x2="480" y2="268" class="d-good" marker-end="url(#m11)"/>
+  <line x1="810" y1="234" x2="810" y2="268" class="d-good" marker-end="url(#m11)"/>
+  <rect x="20" y="276" width="920" height="34" rx="8" style="fill:var(--bg2);stroke:var(--good);stroke-width:2"/>
+  <text x="480" y="299" text-anchor="middle" class="d-mono" style="fill:var(--good)">la spec — le même texte à chaque lecture</text>
+</svg>
+  </div>
+ </div>
+</section>
+
+<!-- 12 · TROIS DÉRIVES -->
+<section>
+ <div class="split">
+  <div class="l">
+    <div class="kicker">Coding</div>
+    <h2>Elle attrape trois dérives<br>que rien d'autre ne voit</h2>
+    <p>Trois erreurs classiques d'un agent qui code vite. Aucune ne se voit dans du code d'apparence propre. Toutes se voient face à la spec.</p>
+  </div>
+  <div class="r">
+    <div class="grid g3" style="grid-template-columns:1fr">
+      <div class="card warn">
+        <span class="tag">Le travail en trop</span>
+        <p>L'agent ajoute une fonction, une option que personne n'a demandée. Le code est bon — il n'était pas demandé.</p>
+        <p style="margin-top:.5rem"><strong>Attrapé par :</strong> le fichier ajouté n'est pas dans la liste prévue.</p>
+      </div>
+      <div class="card warn">
+        <span class="tag">La valeur inventée</span>
+        <p>Une donnée manque, l'agent met une valeur « raisonnable ». Ça marche, ça passe la revue, personne ne le voit pendant un an.</p>
+        <p style="margin-top:.5rem"><strong>Attrapé par :</strong> une consigne écrite — <em>jamais de valeur inventée quand une donnée manque</em>.</p>
+      </div>
+      <div class="card warn">
+        <span class="tag">Le travail à moitié fait</span>
+        <p>Le cas qui marche est codé, la démo passe. Le compte désactivé, jamais fait.</p>
+        <p style="margin-top:.5rem"><strong>Attrapé par :</strong> le Cas 3 est une tâche cochée ou non — pas un détail découvert en prod.</p>
+      </div>
+    </div>
+  </div>
+ </div>
+</section>
+
+<!-- 14 · BON MODÈLE -->
+<section>
+ <div class="split">
+  <div class="l">
+    <div class="kicker">Coding</div>
+    <h2>Elle permet d'utiliser<br>un modèle moins cher pour coder</h2>
+    <p>Un gros modèle coûte cher parce qu'il doit deviner ce qu'on veut. Quand une tâche est déjà bien décrite, il n'y a plus rien à deviner : un modèle plus léger suffit.</p>
+    <div class="grid g2">
+      <div class="card v2">
+        <span class="tag">Réfléchir — gros modèle (ex. Opus)</span>
+        <p>Là où il faut du jugement : explorer le code, poser les bonnes questions, écrire les cas, découper en tâches.</p>
+      </div>
+      <div class="card good">
+        <span class="tag">Exécuter — modèle léger (ex. Sonnet)</span>
+        <p>Là où tout est déjà écrit : la tâche, ses fichiers, son test. Il applique, il ne décide pas. Plusieurs fois moins cher, sans perte.</p>
+      </div>
+    </div>
+    <div class="quote"><p>Sans spec, on paie le gros modèle à chaque ligne pour qu'il redevine l'intention. Avec spec, on le paie une seule fois : pour l'écrire.</p></div>
+  </div>
+  <div class="r">
+<pre style="margin-top:0"><code><span class="c-cmt">## Tâche A.2 — assez décrite pour un modèle léger</span>
+Cas       : <span class="c-str">Cas 3</span> — un compte désactivé
+            ne peut plus se connecter
+Fichiers  : <span class="c-str">vérification du login</span>,
+            <span class="c-str">test de la connexion</span>
+Test      : <span class="c-str">« compte désactivé → refusé »</span>
+Ne pas toucher : le message d'erreur,
+            ni les autres cas de la spec</code></pre>
+  </div>
+ </div>
+</section>
+
+<!-- 15 · DIV TESTS -->
+<section class="divider">
+  <div class="num">03</div>
+  <h2>Tests</h2>
+  <p class="q">En quoi la spec aide&nbsp;?</p>
+  <p class="lead" style="margin-top:.5rem;color:var(--dim)">Tester ce qu'on a promis, pas ce que le code fait.</p>
+  <div class="who"><span><b>Pour moi</b> je vois ce qui est garanti et ce qui ne l'est pas, sans lire le code</span><span class="ag"><b>Pour l'agent</b> il écrit les tests à partir des cas, sans regarder l'implémentation</span></div>
+<svg class="art" viewBox="0 0 200 200" aria-hidden="true"><path class="a1" d="M100 40v124M60 164h80M40 70h120"/><circle class="f1" cx="100" cy="40" r="5"/><path class="ad" d="M40 70l-18 40M40 70l18 40M160 70l-18 40M160 70l18 40"/><path class="a2" d="M18 112a22 10 0 0 0 44 0z"/><path class="a2" d="M138 112a22 10 0 0 0 44 0z"/></svg>
+</section>
+
+<!-- 16 · CRITÈRES PAS CODE -->
+<section>
+ <div class="split">
+  <div class="l">
+    <div class="kicker">Tests</div>
+    <p class="big" style="margin-bottom:.9rem;font-size:clamp(1.3rem,2.4vw,2rem);max-width:none">On teste que <span class="o">les cas</span> marchent. Pas que <span class="x">le code</span> marche.</p>
+<pre style="margin-top:0"><code><span class="c-cmt"># écrit en regardant le code</span>
+<span class="c-key">def</span> test_verifie_mot_de_passe():
+    user = compte(mot_de_passe=<span class="c-str">"secret"</span>)
+    <span class="c-key">assert</span> verifie(user, <span class="c-str">"faux"</span>) <span class="c-key">is</span> False
+<span class="c-cmt"># → recopie la fonction. Renomme-la : le test
+#   casse. Le comportement, lui, n'a pas bougé.</span></code></pre>
+<pre><code><span class="c-cmt"># écrit à partir du Cas 2, sans ouvrir le code</span>
+<span class="c-key">def</span> test_meme_erreur_email_ou_mdp_faux():
+    r1 = login(email=<span class="c-str">"inconnu@x.io"</span>, mdp=<span class="c-str">"x"</span>)
+    r2 = login(email=<span class="c-str">"connu@x.io"</span>, mdp=<span class="c-str">"faux"</span>)
+    <span class="c-key">assert</span> r1.erreur == r2.erreur
+<span class="c-cmt"># → réécris tout le code : ce test ne bouge pas.</span></code></pre>
+  </div>
+  <div class="r">
+<svg class="diag" viewBox="0 0 960 280" role="img" aria-label="Test copié du code : une boucle. Test tiré du cas : un juge à part.">
+  <defs>
+    <marker id="m16b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="d-bad-f"/></marker>
+    <marker id="m16g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="d-good-f"/></marker>
+  </defs>
+  <text x="220" y="26" text-anchor="middle" class="d-txt" style="fill:var(--bad)">Test copié du code</text>
+  <rect x="60" y="116" width="130" height="56" rx="10" class="d-box"/>
+  <text x="125" y="150" text-anchor="middle" class="d-txt">code</text>
+  <rect x="250" y="116" width="130" height="56" rx="10" class="d-box"/>
+  <text x="315" y="150" text-anchor="middle" class="d-txt">test</text>
+  <path d="M 190 131 Q 220 84 250 131" class="d-bad" marker-end="url(#m16b)"/>
+  <path d="M 250 158 Q 220 205 190 158" class="d-bad" marker-end="url(#m16b)"/>
+  <text x="220" y="232" text-anchor="middle" class="d-dim">le test refait ce que le code fait</text>
+  <text x="220" y="254" text-anchor="middle" class="d-dim" style="fill:var(--bad)">il sera toujours au vert, même si le comportement est faux</text>
+
+  <text x="720" y="26" text-anchor="middle" class="d-txt" style="fill:var(--good)">Test tiré du cas</text>
+  <rect x="655" y="42" width="130" height="56" rx="10" class="d-box" style="stroke:var(--accent);stroke-width:2"/>
+  <text x="720" y="76" text-anchor="middle" class="d-txt" style="fill:var(--accent)">le cas</text>
+  <rect x="540" y="182" width="130" height="56" rx="10" class="d-box"/>
+  <text x="605" y="216" text-anchor="middle" class="d-txt">code</text>
+  <rect x="770" y="182" width="130" height="56" rx="10" class="d-box"/>
+  <text x="835" y="216" text-anchor="middle" class="d-txt">test</text>
+  <line x1="688" y1="98" x2="622" y2="178" class="d-good" marker-end="url(#m16g)"/>
+  <line x1="752" y1="98" x2="818" y2="178" class="d-good" marker-end="url(#m16g)"/>
+  <line x1="768" y1="210" x2="676" y2="210" class="d-good" marker-end="url(#m16g)" stroke-dasharray="5 4"/>
+  <text x="722" y="202" text-anchor="middle" class="d-dim" style="font-size:11px">contrôle</text>
+  <text x="720" y="266" text-anchor="middle" class="d-dim">le test peut vraiment échouer — c'est ce qui le rend utile</text>
+</svg>
+  </div>
+ </div>
+</section>
+
+<!-- 17 · LA CONDITION -->
+<section>
+ <div class="split">
+  <div class="l">
+    <div class="kicker w">Tests · le point d'attention</div>
+    <h2>Attention : qui écrit le cas,<br>et qui écrit le test&nbsp;?</h2>
+    <p>Si le <strong>même</strong> agent, dans la <strong>même</strong> session, écrit le cas, puis le code, puis le test, il peut répéter la même erreur dans les trois. Les tests passent au vert, mais ils ne vérifient rien de neuf.</p>
+    <div class="quote w"><p>Sans ces trois conditions, le test n'est pas un contrôle indépendant : c'est la même erreur écrite trois fois.</p></div>
+  </div>
+  <div class="r">
+    <div class="grid g3" style="grid-template-columns:1fr">
+      <div class="card good"><span class="tag">Condition 1</span><p>Le cas a été <strong>écrit ou relu par un humain</strong>. C'est là qu'est le vrai choix, et il ne se délègue pas.</p></div>
+      <div class="card good"><span class="tag">Condition 2</span><p>Le test est écrit <strong>dans une autre session</strong>, ou par un autre agent, avec le cas seul sous les yeux.</p></div>
+      <div class="card good"><span class="tag">Condition 3</span><p>Le test ne parle que de ce qu'on voit de l'extérieur : ce qui entre, ce qui sort, le message d'erreur. Rien du code interne.</p></div>
+    </div>
+  </div>
+ </div>
+</section>
+
+<!-- 18 · QUOI TESTER -->
+<section>
+ <div class="split">
+  <div class="l">
+    <div class="kicker">Tests</div>
+    <h2>Elle te dit <em>quoi</em> tester,<br>les refus compris</h2>
+    <p>L'avantage : la liste des cas est déjà la liste de ce qu'il faut vérifier. Sans elle, on teste le cas qui marche et on oublie les refus et les limites — là où sont les bugs.</p>
+    <div class="quote" style="border-color:var(--bad)"><p>Le piège le plus courant : on ne teste que le cas qui marche — alors que la spec passe l'essentiel de son temps à décrire ce qui doit être <em style="color:var(--bad)">refusé</em>.</p></div>
+  </div>
+  <div class="r">
+    <div class="grid g2">
+      <div class="card good"><span class="tag">Ça marche</span><p>Le cas normal.<br><em style="color:var(--dim)">Bons identifiants → connexion</em></p></div>
+      <div class="card bad"><span class="tag">C'est refusé</span><p>Ce qui doit être bloqué.<br><em style="color:var(--dim)">Email inconnu, mot de passe faux, compte désactivé</em></p></div>
+      <div class="card warn"><span class="tag">Les bords</span><p>Les limites exactes.<br><em style="color:var(--dim)">Champ vide → erreur. Majuscules → accepté</em></p></div>
+      <div class="card v2"><span class="tag">L'ancien état</span><p>Les données déjà en place.<br><em style="color:var(--dim)">Un vieux compte se comporte toujours bien</em></p></div>
+    </div>
+  </div>
+ </div>
+</section>
+
+<!-- 19 · QUEL CAS N'EST PAS TESTÉ -->
+<section>
+ <div class="split">
+  <div class="l">
+    <div class="kicker">Tests</div>
+    <h2>Et elle montre<br>lequel n'a pas encore de test</h2>
+    <p>Une fois les tests écrits, la spec sert de liste de contrôle : chaque cas est vérifié, ou pas. Le trou saute aux yeux — sans logiciel spécial, une simple recherche suffit.</p>
+    <div class="quote"><p>« Le Cas 3 n'a pas de test » se comprend par tout le monde. Un « 92 % du code testé », non.</p></div>
+  </div>
+  <div class="r">
+  <table style="margin-top:0">
+    <tr><th>Cas de la spec</th><th>Test</th><th></th></tr>
+    <tr><td>Cas 1 · Identifiants valides</td><td>connexion acceptée</td><td class="ok">✓</td></tr>
+    <tr><td>Cas 2 · Même erreur</td><td>même message</td><td class="ok">✓</td></tr>
+    <tr class="miss"><td>Cas 3 · Compte désactivé</td><td>aucun test</td><td class="ko">✗</td></tr>
+    <tr><td>Cas 8 · Échecs de plusieurs IP</td><td>bloqué quand même</td><td class="ok">✓</td></tr>
+    <tr><td>Cas 9 · Une IP, 20 comptes</td><td>IP bloquée</td><td class="ok">✓</td></tr>
+    <tr><td>Cas 13 · Journalisation</td><td>tentative journalisée</td><td class="ok">✓</td></tr>
+  </table>
+  </div>
+ </div>
+</section>
+
+<!-- 21 · DIV REVIEWS -->
+<section class="divider">
+  <div class="num">04</div>
+  <h2>Reviews</h2>
+  <p class="q">En quoi la spec aide&nbsp;?</p>
+  <p class="lead" style="margin-top:.5rem;color:var(--dim)">Relire contre un contrat clair, pas contre une impression.</p>
+  <div class="who"><span><b>Pour moi</b> je relis d'abord la spec, puis le code en face — et je peux refuser sur des faits</span><span class="ag"><b>Pour l'agent</b> il fait le premier tri : quel cas n'a pas de test&nbsp;?</span></div>
+<svg class="art" viewBox="0 0 200 200" aria-hidden="true"><rect class="a1" x="18" y="40" width="72" height="120" rx="8"/><rect class="ad" x="110" y="40" width="72" height="120" rx="8"/><path class="a1" d="M32 64h44M32 84h44M32 104h30"/><path class="ad" d="M124 64h44M124 84h44M124 104h30M124 124h44"/><path class="ab" d="M124 124h44" style="stroke-width:6;opacity:.5"/><path class="ag" d="M92 76h16" stroke-dasharray="4 4"/><path class="ab" d="M160 130l14 14M174 130l-14 14" style="stroke-width:4"/></svg>
+</section>
+
+<!-- 22 · LEVIER -->
+<section>
+ <div class="split">
+  <div class="l">
+    <div class="kicker v2">Reviews · l'argument principal</div>
+    <h2>Elle rend la review<br>rapide et fiable</h2>
+    <p style="margin-top:1rem">Sans spec, on relit du code à l'instinct et on approuve « parce que ça a l'air correct ». C'est une impression, pas une review.</p>
+    <p style="margin-top:.7rem">Avec la spec, on a un repère court à comparer au code — plus rapide, et partagé par toute l'équipe.</p>
+    <p class="lead" style="margin-top:1.1rem;color:var(--accent)">On lit la spec comme référence, puis on vérifie le code en face. Jamais tout le code sans repère.</p>
+  </div>
+  <div class="r">
+<svg class="diag" viewBox="0 0 960 250" role="img" aria-label="La spec, courte, sert de référence ; le code, long, est vérifié en face">
+  <defs><marker id="m24" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="d-acc-f"/></marker></defs>
+  <rect x="360" y="26" width="240" height="64" rx="10" class="d-box" style="stroke:var(--accent);stroke-width:2"/>
+  <text x="480" y="55" text-anchor="middle" class="d-txt" style="fill:var(--accent)">la spec</text>
+  <text x="480" y="76" text-anchor="middle" class="d-dim">courte — la référence</text>
+  <rect x="130" y="150" width="700" height="64" rx="10" class="d-box"/>
+  <text x="480" y="179" text-anchor="middle" class="d-txt">le code</text>
+  <text x="480" y="200" text-anchor="middle" class="d-dim">long — ce qu'on vérifie</text>
+  <line x1="480" y1="90" x2="480" y2="148" class="d-acc" marker-end="url(#m24)"/>
+  <text x="335" y="55" text-anchor="end" class="d-txt" style="fill:var(--accent)">on lit ça</text>
+  <text x="625" y="55" class="d-dim" style="fill:var(--bad)">une erreur ici…</text>
+  <text x="620" y="188" class="d-dim" style="fill:var(--bad)">…se répète dans tout le code</text>
+</svg>
+  </div>
+ </div>
+</section>
+
+<!-- 24 · EXEMPLE PR GITHUB -->
+<section>
+ <div class="split" style="grid-template-columns:minmax(0,0.7fr) minmax(0,1.3fr)">
+  <div class="l">
+    <div class="kicker v2">Reviews · l'exemple concret</div>
+    <h2>Une bonne PR, reliée à la spec</h2>
+    <p>Voici à quoi ressemble une Pull Request qui s'appuie sur la spec. Tout ce qu'il faut vérifier est déjà là, écrit.</p>
+    <p style="margin-top:1rem">Le relecteur ne devine rien : il compare la PR à la spec. Vert partout = conforme à ce qui avait été promis.</p>
+  </div>
+  <div class="r">
+  <div class="pr" style="margin-top:0">
+    <div class="pr-head">
+      <span class="pr-open">Open</span>
+      <span class="pr-title">Connexion sécurisée — 13 cas <span>#128</span></span>
+    </div>
+    <div class="pr-body">
+      <div>
+        <h4>Description</h4>
+        <p style="margin-bottom:.6rem">Spec : <code>specs/connexion.md</code></p>
+        <div class="pr-li">Connexion — Cas 1 à 6</div>
+        <div class="pr-li">Blocage (par compte + par IP) — Cas 7 à 12</div>
+        <div class="pr-li">Journalisation — Cas 13</div>
+      </div>
+      <div>
+        <h4>Fichiers modifiés (= liste prévue)</h4>
+        <div class="pr-file">écran de connexion</div>
+        <div class="pr-file">vérification du mot de passe</div>
+        <div class="pr-file">blocage après échecs</div>
+        <div class="pr-file">tests de connexion</div>
+        <h4 style="margin-top:.9rem">Vérifications automatiques</h4>
+        <div class="pr-check"><b>✓</b> tous les tests passent</div>
+        <div class="pr-check"><b>✓</b> les 13 cas sont testés</div>
+        <div class="pr-check"><b>✓</b> aucun fichier hors de la liste prévue</div>
+      </div>
+    </div>
+    <div class="pr-foot"><b>✓ Approuvé</b> — « Chaque cas de la spec est testé. Fichiers conformes à ce qui était prévu. »</div>
+  </div>
+  </div>
+ </div>
+</section>
+
+<!-- 25 · CHECKLIST -->
+<section>
+ <div class="split">
+  <div class="l">
+    <div class="kicker">Reviews</div>
+    <h2>La revue tient<br>en quatre questions simples</h2>
+    <ul class="checklist" style="margin-top:.6rem">
+      <li><strong>La PR dit-elle quels cas elle traite&nbsp;?</strong><br><span style="font-size:.9em">Sans référence, personne ne peut vérifier quoi que ce soit.</span></li>
+      <li><strong>Les fichiers modifiés étaient-ils dans la liste prévue&nbsp;?</strong><br><span style="font-size:.9em">Un fichier en plus, c'est du travail non demandé ou un effet de bord.</span></li>
+      <li><strong>Chaque cas touché a-t-il au moins un test&nbsp;?</strong><br><span style="font-size:.9em">Vérifiable automatiquement dès que les tests portent le numéro du cas.</span></li>
+      <li><strong>Spec changée → code et tests changés dans la même PR&nbsp;?</strong><br><span style="font-size:.9em">Sinon la spec et le code commencent à se contredire, à partir d'ici.</span></li>
+    </ul>
+  </div>
+  <div class="r">
+<pre style="margin-top:0"><code><span class="c-cmt">Fichiers prévus              Fichiers changés</span>
+écran de connexion           écran de connexion
+vérif. mot de passe          vérif. mot de passe
+test de la connexion         test de la connexion
+                             <span class="c-del">un fichier ajouté en plus</span>
+                             <span class="c-del">← pas dans la liste prévue</span></code></pre>
+    <div class="quote w"><p>En cas de désaccord, la spec gagne, ou on la corrige dans la même PR. Jamais « on verra plus tard ».</p></div>
+  </div>
+ </div>
+</section>
+
+<!-- 26 · DROIT DE REFUSER -->
+<section>
+ <div class="split">
+  <div class="l">
+    <div class="kicker">Reviews</div>
+    <h2>Elle donne le droit de refuser</h2>
+    <p>Sans référence, refuser une PR revient à opposer son goût à du code qui marche : épuisant, subjectif, on finit par céder. Avec la spec, on refuse sur des faits — et la spec, c'est les cas, les décisions, le périmètre et les contraintes.</p>
+    <div class="quote"><p>La spec transforme un débat de personnes en simple vérification. C'est ce qui rend la revue tenable quand le volume de code explose.</p></div>
+  </div>
+  <div class="r">
+    <div class="grid" style="grid-template-columns:1fr;gap:.65rem">
+      <div class="card good"><span class="tag">Un cas</span><p>« Le Cas 3 n'a aucun test » — un fait, pas une opinion.</p></div>
+      <div class="card good"><span class="tag">Une décision</span><p>« La spec décide : compter par compte ET par IP ; le code ne compte que par IP » — un fait.</p></div>
+      <div class="card good"><span class="tag">Le périmètre</span><p>« Ce fichier n'était pas dans la liste prévue » — un fait.</p></div>
+      <div class="card good"><span class="tag">Une contrainte</span><p>« La spec dit : ne jamais inventer de valeur ; le code en invente une » — un fait.</p></div>
+    </div>
+  </div>
+ </div>
+</section>
+
+<!-- 27 · AGENT PREMIER TRI -->
+<section>
+ <div class="split">
+  <div class="l">
+    <div class="kicker">Reviews</div>
+    <h2>Elle donne à l'agent<br>un premier tri utile</h2>
+    <p>Ces questions sont simples et répétitives. Elles ne demandent aucun goût, juste une comparaison avec un texte — donc l'agent les fait bien, et vite.</p>
+    <div class="quote w"><p>L'agent fait ce tri en quelques secondes. On vérifie sa réponse — il peut se tromper. Mais sans spec, la question ne pourrait même pas se poser.</p></div>
+  </div>
+  <div class="r">
+<pre style="margin-top:0"><code><span class="c-str">« Compare ces changements à la spec.
+   Quels cas n'ont aucun test ? »</span>
+
+<span class="c-str">« Quel changement ici ne sert
+   aucun cas et aucune tâche ? »</span></code></pre>
+<pre><code><span class="c-cmt">→ réponse de l'agent</span>
+Cas de la spec : 1 à 13
+Tests trouvés  : 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13
+<span class="c-w">Sans test      : Cas 3 — compte désactivé</span></code></pre>
+  </div>
+ </div>
+</section>
+
+<!-- 28 · À RETENIR -->
+<section class="title">
+  <div class="kicker">À retenir</div>
+  <h1>Quatre étapes,<br>les mêmes specs</h1>
+  <ul style="margin-top:1.7rem">
+    <li><strong>Planification</strong> — la spec fait sortir les questions tôt et <strong>garde les décisions et leur raison</strong>, pour ne pas les reprendre dans six mois.</li>
+    <li><strong>Coding</strong> — elle donne à l'agent un cadre écrit qu'il relit à chaque session.</li>
+    <li><strong>Tests</strong> — on teste que les cas marchent, pas que le code marche.</li>
+    <li><strong>Reviews</strong> — on relit la spec avant le code, et on refuse sur des faits.</li>
+  </ul>
+  <p class="lead" style="margin-top:2rem">Le code, les tests et la review s'appuient tous sur la <em>même</em> spec — des documents texte, rangés avec le code, aucun outil à installer.</p>
+  <p class="lead" style="margin-top:1rem">Une spec, ce n'est pas de la doc en plus. C'est ce qui aide <em>l'équipe et l'agent</em> à construire la bonne chose.</p>
+</section>
+
+<!-- FIN · SPECS > CODE -->
+<section class="title">
+  <div class="kicker">Pour finir</div>
+  <h1>Efface le code,<br>garde les specs</h1>
+  <p class="lead" style="margin-top:1.6rem">Si les specs sont bien faites, on peut supprimer tout le code de l'appli et la recréer à l'identique, avec les mêmes fonctionnalités, à partir des seules specs.</p>
+  <ul style="margin-top:1.6rem">
+    <li>Avec l'IA, le code est devenu bon marché.</li>
+    <li><em>Les specs comptent autant, sinon plus que le code.</em></li>
+    <li>Le code seul ne dit pas <strong>pourquoi</strong> il fait ça — la spec, oui.</li>
+    <li>On change tout le code lors d'une refonte ; les specs, elles, restent.</li>
+  </ul>
+</section>
+
+</div>
+
+<script>
+const deck = document.getElementById('deck');
+const slides = [...document.querySelectorAll('section')];
+document.getElementById('tot').textContent = slides.length;
+const cur = document.getElementById('cur'), bar = document.getElementById('bar');
+
+let i = 0;
+const go = n => { i = Math.max(0, Math.min(slides.length - 1, n)); slides[i].scrollIntoView(); };
+
+deck.addEventListener('scroll', () => {
+  i = Math.round(deck.scrollTop / window.innerHeight);
+  cur.textContent = i + 1;
+  bar.style.width = (i / (slides.length - 1)) * 100 + '%';
+}, { passive: true });
+
+addEventListener('keydown', e => {
+  const k = e.key;
+  if (k === 'ArrowRight' || k === 'ArrowDown' || k === 'PageDown' || k === ' ') { e.preventDefault(); go(i + 1); }
+  else if (k === 'ArrowLeft' || k === 'ArrowUp' || k === 'PageUp') { e.preventDefault(); go(i - 1); }
+  else if (k === 'Home') { e.preventDefault(); go(0); }
+  else if (k === 'End') { e.preventDefault(); go(slides.length - 1); }
+});
+</script>
+</body>
+</html>
