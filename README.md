@@ -15,6 +15,7 @@ Chaque capsule comprend un script de tournage (`PLAN-VIDEO.md`) et une présenta
 | 5 | [**MCP (Model Context Protocol)**](mcp/presentation/index.html) | ~18 min | Protocole ouvert, JSON-RPC, resources/tools/prompts, transport stdio vs HTTP, modèle de sécurité |
 | 6 | [**Sub-agents**](subagents/presentation/index.html) | ~16 min | Isolation de contexte, parallélisme, spécialisation, agents intégrés (Explore, Bash, Browser), agents personnalisés |
 | 7 | [**Choosing a Model**](model_arena/presentation/index.html) | ~13 min | Comparaison tarifaire OpenAI vs Anthropic, critères coût/vitesse/qualité/fiabilité, matrice tâche-modèle |
+| 8 | [**Les SPECS au quotidien**](specs_workflow/presentation/index.html) | ~30 min | En quoi une spec aide à chaque étape (planification, coding, tests, reviews), décisions tracées, tests par cas, exemple fil rouge d'une connexion |
 
 ## Structure du projet
 
@@ -31,7 +32,8 @@ Formations/
 ├── spec_driven/                   # Capsule 4
 ├── mcp/                           # Capsule 5
 ├── subagents/                     # Capsule 6
-└── model_arena/                   # Capsule 7
+├── model_arena/                   # Capsule 7
+└── specs_workflow/                # Capsule 8
 ```
 
 Chaque dossier de capsule contient :
