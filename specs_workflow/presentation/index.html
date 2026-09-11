@@ -206,37 +206,38 @@ tr.miss td{background:#2a1518;color:var(--bad)}
  <div class="split">
   <div class="l">
     <div class="kicker">L'exemple qui servira partout</div>
-    <h2>Un « simple » login<br>cache treize cas</h2>
-    <p>« Faire un écran de connexion », ça paraît trivial. En creusant les exigences, les questions difficiles sortent — treize cas, et ce n'est même pas fini.</p>
-    <p style="margin-top:1rem"><strong>Plusieurs décrivent un refus, une limite ou une contrainte de sécurité</strong>, pas un succès. C'est là que se cachent les vrais bugs.</p>
+    <h2>Une spec = des exigences,<br>chacune avec ses scénarios</h2>
+    <p>Une spec empile des <strong>exigences</strong>. Chaque exigence a plusieurs <strong>scénarios</strong> — ce qu'on appelle les cas. Notre login : 3 exigences, 13 scénarios, et ce n'est pas fini.</p>
+    <p style="margin-top:1rem"><strong>Plusieurs scénarios décrivent un refus, une limite ou une contrainte de sécurité</strong>, pas un succès. C'est là que se cachent les vrais bugs.</p>
   </div>
   <div class="r">
-<pre><code><span class="c-cmt">## Connexion</span>
-Un email inconnu et un mauvais mot de passe <span class="c-key">DOIVENT</span> renvoyer le même
-refus, <span class="c-w">pour qu'on ne puisse pas deviner quels comptes existent</span>.
+<pre><code><span class="c-key">### Exigence : Connexion</span>
+Même refus pour un email inconnu ou un mauvais mot de passe
+(ne pas révéler quels comptes existent).
+  <span class="c-cmt">scénarios :</span>
+  <span class="c-str">Cas 1</span>  Identifiants valides       → connexion acceptée
+  <span class="c-str">Cas 2</span>  Email inconnu / mdp faux   → <span class="c-w">même</span> message d'erreur
+  <span class="c-str">Cas 3</span>  Compte désactivé           → refusé
+  <span class="c-str">Cas 4</span>  Champ vide                 → erreur de saisie
+  <span class="c-str">Cas 5</span>  Email en MAJUSCULES        → accepté
+  <span class="c-str">Cas 6</span>  Déjà connecté              → redirigé
 
-  <span class="c-str">Cas 1</span>  Identifiants valides            → connexion acceptée
-  <span class="c-str">Cas 2</span>  Email inconnu <span class="c-w">ou</span> mot de passe faux  → <span class="c-w">même</span> message d'erreur
-  <span class="c-str">Cas 3</span>  Compte désactivé                → refusé
-  <span class="c-str">Cas 4</span>  Champ vide                      → erreur de saisie
-  <span class="c-str">Cas 5</span>  Email en MAJUSCULES             → accepté (casse ignorée)
-  <span class="c-str">Cas 6</span>  Utilisateur déjà connecté       → <span class="c-w">redirigé, pas d'écran</span>
+<span class="c-key">### Exigence : Blocage après trop d'essais</span>
+Bloquer après 5 échecs, comptés <span class="c-w">par compte ET par IP</span>.
+  <span class="c-cmt">scénarios :</span>
+  <span class="c-str">Cas 7</span>  5 échecs / 15 min          → bloqué 30 min + message
+  <span class="c-str">Cas 8</span>  échecs de plusieurs IP     → bloqué quand même (par compte)
+  <span class="c-str">Cas 9</span>  une IP, 20 comptes         → cette IP bloquée (par IP)
+  <span class="c-str">Cas 10</span> succès                     → compteur remis à zéro
+  <span class="c-str">Cas 11</span> bon mdp pendant le blocage → refusé
+  <span class="c-str">Cas 12</span> après 30 min               → connexion possible
 
-<span class="c-cmt">## Blocage après trop d'essais</span>
-  <span class="c-str">Cas 7</span>  5 échecs <span class="c-w">en 15 min</span> sur le même compte → bloqué 30 min + message
-  <span class="c-str">Cas 8</span>  Les 5 échecs viennent d'IP différentes → <span class="c-w">bloqué quand même</span>
-          (on compte <span class="c-w">par compte</span>)
-  <span class="c-str">Cas 9</span>  Une même IP essaie 20 comptes différents <span class="c-w">en 15 min</span>
-          → <span class="c-w">cette IP est bloquée</span> (on compte <span class="c-w">aussi par IP</span>)
-  <span class="c-str">Cas 10</span> Une connexion réussie <span class="c-w">remet le compteur à zéro</span>
-  <span class="c-str">Cas 11</span> Pendant le blocage, bon mot de passe → <span class="c-w">refusé</span>
-  <span class="c-str">Cas 12</span> Après 30 min                → connexion de nouveau possible
+<span class="c-key">### Exigence : Journalisation</span>
+Tout journaliser, <span class="c-w">jamais le mot de passe</span>.
+  <span class="c-cmt">scénarios :</span>
+  <span class="c-str">Cas 13</span> date, email, IP, résultat  → jamais le mot de passe
 
-<span class="c-cmt">## Journalisation</span>
-  <span class="c-str">Cas 13</span> Chaque tentative journalisée
-
-<span class="c-cmt">  … et ce n'est pas fini (mot de passe expiré, e-mail non vérifié,
-  double authentification…)</span></code></pre>
+<span class="c-cmt">  … et d'autres exigences (mdp expiré, e-mail non vérifié…)</span></code></pre>
   </div>
  </div>
 </section>
